@@ -131,7 +131,12 @@
             			<configuration>
           
                             <sourceDirectory>src/main/java/antlr3/com/googlecode/gql4j</sourceDirectory>
-               
+			    <printGrammar>false</printGrammar>
+			    <profile>false</profile>
+			    <report>false</report>
+			    <outputDirectory>${project.build.directory}/generated-sources/antlr3/antlr/com/googlecode/gql4j</outputDirectory>
+			    <trace>false</trace>
+			    <verbose>true</verbose>
                         </configuration>           			
           			</execution>
         		</executions>
