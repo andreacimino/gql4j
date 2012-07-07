@@ -148,7 +148,7 @@
             </goals>
             <configuration>
                 <sources>
-                    <source>${project.build.directory}/generated-sources/com/googlecode/gql4j/antlr</source>
+                    <source>${project.build.directory}/generated-sources/antlr3/antlr/com/googlecode/gql4j/antlr</source>
                 </sources>
             </configuration>
         </execution>
