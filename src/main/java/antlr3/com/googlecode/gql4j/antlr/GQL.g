@@ -218,7 +218,7 @@ NULL : N U L L;
 
 // IDENTITY matches both kind name and property name
 IDENTITY 
-  : (LETTER | '_') (LETTER | DIGIT | '_')*
+  : (LETTER | '_') (LETTER | DIGIT | '_' | '-')*
 ;
 
 WHITESPACE : ( '\t' | ' ' | '\r' | '\n' | '\f' )+  { $channel = HIDDEN; };
