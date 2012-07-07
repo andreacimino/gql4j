@@ -311,7 +311,7 @@ public class GqlQuery {
 		}
 		
 		public void addProjection(String field) {
-			this.projections.add(field)	;
+			this.projections.add(field);
 		}
 		
 		public boolean isKeyOnly() {
