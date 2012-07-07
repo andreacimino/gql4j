@@ -20,6 +20,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PropertyProjection;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.SortDirection;
@@ -81,6 +82,9 @@ public class GqlQuery {
 		// select clause
 		if (r.select.isKeyOnly()) {
 			this.query.setKeysOnly();
+		}
+		for (String projection : r.select.projections) {
+			query.addProjection(new PropertyProjection(projection, null));
 		}
 		
 		// where clause
@@ -299,10 +303,15 @@ public class GqlQuery {
 		 * select item, only * and __key__ is allowed (case sensitive)
 		 */
 		private final boolean keyOnly;
-
+		private final ArrayList<String> projections;
 		public Select(boolean keyOnly) {
 			super();
 			this.keyOnly = keyOnly;
+			this.projections = new ArrayList<String>();
+		}
+		
+		public void addProjection(String field) {
+			this.projections.add(field)	;
 		}
 		
 		public boolean isKeyOnly() {

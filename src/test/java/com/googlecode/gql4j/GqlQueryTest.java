@@ -205,6 +205,14 @@ public class GqlQueryTest {
 		assertEquals(expected, actual);
 	}
 	
+	//FIXME: improve this test, this means nothing at the moment.
+	@Test
+	public void testParseSelect_3() {
+		ParseResult actual = GqlQuery.parse("SELECT a,b");
+		ParseResult expected = new ParseResult().setSelect(new Select(false));
+		assertEquals(expected, actual);
+	}
+	
 	@Test
 	public void testParseFrom_1() {
 		ParseResult actual = GqlQuery.parse("SELECT * from a");
