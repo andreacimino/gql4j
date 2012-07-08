@@ -34,20 +34,20 @@ import com.googlecode.gql4j.antlr.*;
  *
  */
 public class GqlQuery {
-	
+
 	private Query query;
-	
+
 	private FetchOptions fetchOptions; 
-	
+
 	/**
 	 * @param queryStr
 	 * @param context
 	 */
 	public GqlQuery(String queryStr, Map<String, Object> context) {
 		super();
-		
+
 		Preconditions.checkNotNull(queryStr);
-		
+
 		build(queryStr, context);
 	}
 
@@ -57,28 +57,28 @@ public class GqlQuery {
 	 */
 	public GqlQuery(String queryStr, Object ...params) {
 		super();
-		
+
 		Preconditions.checkNotNull(queryStr);
-		
+
 		// evaluation context
 		Map<String, Object> context = Maps.newHashMap();
 		for (int i = 0 ; i < params.length ; i ++) {
 			context.put(String.valueOf(i + 1), params[i]);
 		}
-		
+
 		build(queryStr, context);
 	}
 
 	private void build(String queryStr, Map<String, Object> context) {
 		ParseResult r = parse(queryStr);
-		
+
 		// from clause
 		if (r.from == null) {
 			this.query = new Query();
 		} else {
 			this.query = new Query(r.from.kind);
 		}
-		
+
 		// select clause
 		if (r.select.isKeyOnly()) {
 			this.query.setKeysOnly();
@@ -86,44 +86,44 @@ public class GqlQuery {
 		for (String projection : r.select.projections) {
 			query.addProjection(new PropertyProjection(projection, null));
 		}
-		
+
 		// where clause
 		if (r.where != null) {
 			for (Condition c : r.where.conditions) {
 				this.query.addFilter(c.propertyName, c.operator, c.e.evaluate(context));
 			}
-			
+
 			// set ancester
 			if (r.where.ancestor != null) {
 				this.query.setAncestor(r.where.ancestor.ancestorKey(context));
 			}
 		}
-		
+
 		// order by
 		if (r.orderBy != null) {
 			for (OrderByItem o : r.orderBy.items) {
 				this.query.addSort(o.propertyName, o.direction);
 			}
 		}
-		
+
 		// limit
 		if (r.limit != null) {
 			this.fetchOptions = FetchOptions.Builder.withLimit(r.limit.limit);
 		}
-		
+
 		if (r.offset != null) {
 			if (this.fetchOptions == null) {
 				this.fetchOptions = FetchOptions.Builder.withDefaults();
 			}
-			
+
 			this.fetchOptions.offset(r.offset.offset);
 		}
 	}
-	
+
 	static ParseResult parse(String queryStr) {		
 		try {
 			CharStream input = new ANTLRStringStream(queryStr);
-			
+
 			GQLLexer lexer = new GQLLexer(input);
 			TokenStream tokens = new CommonTokenStream(lexer);
 			GQLParser parser = new GQLParser(tokens);
@@ -141,7 +141,7 @@ public class GqlQuery {
 		if (fetchOptions == null) {
 			fetchOptions = FetchOptions.Builder.withDefaults();
 		}
-		
+
 		return fetchOptions;
 	}
 
@@ -168,18 +168,18 @@ public class GqlQuery {
 			super(cause);
 		}
 	}
-	
+
 	public static class ParseResult {
 		private Select select;
-		
+
 		private From from;
-		
+
 		private Where where;
-		
+
 		private OrderBy orderBy;
-		
+
 		private Limit limit;
-		
+
 		private Offset offset;
 
 		public Select getSelect() {
@@ -297,7 +297,7 @@ public class GqlQuery {
 					+ ", limit=" + limit + ", offset=" + offset + "]";
 		}
 	}
-	
+
 	public static class Select {		
 		/**
 		 * select item, only * and __key__ is allowed (case sensitive)
@@ -309,11 +309,15 @@ public class GqlQuery {
 			this.keyOnly = keyOnly;
 			this.projections = new ArrayList<String>();
 		}
-		
+
 		public void addProjection(String field) {
 			this.projections.add(field);
 		}
-		
+
+		public ArrayList<String> getProjections() {
+			return projections;
+		}
+
 		public boolean isKeyOnly() {
 			return this.keyOnly;
 		}
@@ -337,6 +341,8 @@ public class GqlQuery {
 			Select other = (Select) obj;
 			if (keyOnly != other.keyOnly)
 				return false;
+			if (!projections.equals(other.getProjections()))
+				return false;
 			return true;
 		}
 
@@ -345,7 +351,7 @@ public class GqlQuery {
 			return "Select [keyOnly=" + keyOnly + "]";
 		}
 	}
-	
+
 	public static class From {
 		private final String kind;
 
@@ -384,21 +390,21 @@ public class GqlQuery {
 			return "From [kind=" + kind + "]";
 		}
 	}
-	
+
 	public static class Where {
 		private final List<Condition> conditions;
-		
+
 		private Ancestor ancestor;
-		
+
 		public Where() {
 			conditions = Lists.newLinkedList();
 		}
-		
+
 		public Where withCondition(Condition condition) {
 			this.conditions.add(condition);
 			return this;
 		}
-		
+
 		public Where withAncestor(Evaluator e) {
 			ancestor = new Ancestor(e);
 			return this;
@@ -440,11 +446,11 @@ public class GqlQuery {
 			return "Where [conditions=" + conditions + ", ancestor=" + ancestor + "]";
 		}
 	}
-	
+
 	public static class Ancestor {
 
 		private final Evaluator e;
-		
+
 		public Ancestor(Evaluator e) {
 			super();
 			this.e = e;
@@ -491,14 +497,14 @@ public class GqlQuery {
 			return "Ancestor [e=" + e + "]";
 		}
 	}
-	
+
 	public static class OrderBy {
 		private final List<OrderByItem> items;
-		
+
 		public OrderBy() {
 			items = Lists.newLinkedList();
 		}
-		
+
 		public OrderBy withItem(OrderByItem item) {
 			this.items.add(item);
 			return this;
@@ -534,7 +540,7 @@ public class GqlQuery {
 			return "OrderBy [items=" + items + "]";
 		}
 	}
-	
+
 	public static class Limit {
 		private final Integer limit;
 
@@ -573,7 +579,7 @@ public class GqlQuery {
 			return "Limit [limit=" + limit + "]";
 		}
 	}
-	
+
 	public static class Offset {
 		private final Integer offset;
 
@@ -612,7 +618,7 @@ public class GqlQuery {
 			return "Offset [offset=" + offset + "]";
 		}
 	}
-	
+
 	/**
 	 * where condition
 	 * 
@@ -621,18 +627,18 @@ public class GqlQuery {
 	 */
 	public static class Condition {
 		private String propertyName;
-		
+
 		private FilterOperator operator;
-		
+
 		private Evaluator e;
 
 		public Condition(String propertyName, FilterOperator operator, Evaluator e) {
 			super();
-			
+
 			Preconditions.checkNotNull(propertyName);
 			Preconditions.checkNotNull(operator);
 			Preconditions.checkNotNull(e);
-			
+
 			this.propertyName = propertyName;
 			this.operator = operator;
 			this.e = e;
@@ -677,15 +683,15 @@ public class GqlQuery {
 			return "Condition [propertyName=" + propertyName + ", operator=" + operator + ", e=" + e + "]";
 		}
 	}
-	
+
 	/**
 	 * @author Max Zhu (thebbsky@gmail.com)
 	 *
 	 */
 	public static class OrderByItem {
-		
+
 		private String propertyName;
-		
+
 		private SortDirection direction;
 
 		public OrderByItem(String propertyName) {
@@ -693,7 +699,7 @@ public class GqlQuery {
 			this.propertyName = propertyName;
 			this.direction = SortDirection.ASCENDING;
 		}
-		
+
 		public OrderByItem setDirection(boolean ascending) {
 			this.direction = ascending ? SortDirection.ASCENDING : SortDirection.DESCENDING;
 			return this;
@@ -732,38 +738,38 @@ public class GqlQuery {
 			return "OrderByItem [propertyName=" + propertyName + ", direction=" + direction + "]";
 		}
 	}
-	
+
 	public static interface Evaluator {
-		
+
 		/**
 		 * @param context
 		 * @return
 		 */
 		public Object evaluate(Map<String, Object> context);
 	}
-	
+
 	public static class NullEvaluator implements Evaluator {
 
 		private static NullEvaluator singleton;
-		
+
 		public static synchronized NullEvaluator get() {
 			if (singleton == null) {
 				singleton = new NullEvaluator();
 			}
 			return singleton;
 		}
-		
+
 		private NullEvaluator() {}
-		
+
 		@Override
 		public Object evaluate(Map<String, Object> context) {
 			return null;
 		}
 	}
-	
+
 	public static class DecimalEvaluator implements Evaluator {
 		private final BigDecimal payload;
-		
+
 		public DecimalEvaluator(String strNumber) {
 			payload = new BigDecimal(strNumber);
 		}
@@ -807,15 +813,15 @@ public class GqlQuery {
 			return "DecimalEvaluator [payload=" + payload + "]";
 		}
 	}
-	
+
 	public static class StringEvaluator implements Evaluator {
 		private final String payload;
-		
+
 		public StringEvaluator(String rawText) {
 			super();
 			// remove single quote
 			String withoutQuote = rawText.substring(1, rawText.length() - 1);
-			
+
 			// replace \' with '
 			this.payload = withoutQuote.replace("\\'", "'");
 		}
@@ -855,14 +861,14 @@ public class GqlQuery {
 			return "StringEvaluator [payload=" + payload + "]";
 		}
 	}
-	
+
 	public static class BooleanEvaluator implements Evaluator {
 		private final Boolean payload;
 
 		public BooleanEvaluator(String input) {
 			this.payload = Boolean.valueOf(input);
 		}
-		
+
 		@Override
 		public Object evaluate(Map<String, Object> context) {
 			return this.payload;
@@ -898,9 +904,9 @@ public class GqlQuery {
 			return "BooleanEvaluator [payload=" + payload + "]";
 		}
 	}
-	
+
 	public static class FunctionEvaluator implements Evaluator {
-		
+
 		public enum Type {
 			DATETIME, 
 			DATE,
@@ -909,26 +915,26 @@ public class GqlQuery {
 			USER,
 			GEOPT
 		}
-		
+
 		private final Type type;
-		
+
 		private final List<Evaluator> ops;
-		
+
 		public FunctionEvaluator(String type, Evaluator ...ops) {
 			this.type = Type.valueOf(type.toUpperCase());
 			this.ops = Lists.newArrayList(ops);
 		}
-		
+
 		public FunctionEvaluator(String type, List<Evaluator> ops) {
 			this.type = Type.valueOf(type.toUpperCase());
 			this.ops = ops;
 		}
-		
+
 		public FunctionEvaluator withParam(Evaluator e) {
 			this.ops.add(e);
 			return this;
 		}
-		
+
 		@Override
 		public Object evaluate(Map<String, Object> context) {
 			switch(this.type) {
@@ -951,7 +957,7 @@ public class GqlQuery {
 		}
 
 		private static final String DEFAULT_AUTH_DOMAIN = "gmail.com";
-		
+
 		private Object user(Map<String, Object> context) {
 			if (this.ops.size() == 1) {
 				Object val = this.ops.get(0).evaluate(context);
@@ -980,14 +986,14 @@ public class GqlQuery {
 					while (i.hasNext()) {
 						String kind = (String) i.next().evaluate(context);
 						Object nameId = i.next().evaluate(context);
-						
+
 						if (nameId instanceof String) {
 							key = KeyFactory.createKey(key, kind, (String)nameId);
 						} else if (nameId instanceof Long) {
 							key = KeyFactory.createKey(key, kind, (Long)nameId);
 						}
 					}
-					
+
 					return key;
 				} catch (ClassCastException e) {
 					throw new GqlQueryException("Invalid GQL query string. Function key: invalid input", e);					
@@ -1003,7 +1009,7 @@ public class GqlQuery {
 		}
 
 		private static DateFormat timeFmter = new SimpleDateFormat("HH:mm:ss");
-		
+
 		private Object time(Map<String, Object> context) {
 			if (this.ops.size() == 1) {
 				// TIME('HH:MM:SS')
@@ -1023,7 +1029,7 @@ public class GqlQuery {
 					int hour = ((Number)this.ops.get(0).evaluate(context)).intValue();
 					int minute = ((Number)this.ops.get(1).evaluate(context)).intValue();
 					int second = ((Number)this.ops.get(2).evaluate(context)).intValue();
-					
+
 					Calendar c = Calendar.getInstance();
 					c.set(Calendar.HOUR, hour);
 					c.set(Calendar.MINUTE, minute);
@@ -1038,7 +1044,7 @@ public class GqlQuery {
 		}
 
 		private static DateFormat dateFmter = new SimpleDateFormat("yyyy-MM-dd");
-		
+
 		private Object date(Map<String, Object> context) {
 			if (this.ops.size() == 1) {
 				// DATE('YYYY-MM-DD')
@@ -1058,7 +1064,7 @@ public class GqlQuery {
 					int year = ((Number)this.ops.get(0).evaluate(context)).intValue();
 					int month = ((Number)this.ops.get(1).evaluate(context)).intValue();
 					int day = ((Number)this.ops.get(2).evaluate(context)).intValue();
-					
+
 					return createDate(year, month, day, 0, 0, 0);
 				} catch (ClassCastException e) {
 					throw new GqlQueryException("Invalid GQL query string. Function date: invalid input", e);
@@ -1067,9 +1073,9 @@ public class GqlQuery {
 				throw new GqlQueryException("Invalid GQL query string. Function date: wrong number of arguments");
 			}
 		}
-		
+
 		private static DateFormat datetimeFmter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		
+
 		private Object datetime(Map<String, Object> context) {
 			if (this.ops.size() == 1) {
 				// DATETIME('YYYY-MM-DD HH:MM:SS')
@@ -1092,7 +1098,7 @@ public class GqlQuery {
 					int hour = ((Number)this.ops.get(3).evaluate(context)).intValue();
 					int minute = ((Number)this.ops.get(4).evaluate(context)).intValue();
 					int second = ((Number)this.ops.get(5).evaluate(context)).intValue();
-					
+
 					return createDate(year, month, day, hour, minute, second);
 				} catch (ClassCastException e) {
 					throw new GqlQueryException("Invalid GQL query string. Function datetime: invalid input", e);
@@ -1101,7 +1107,7 @@ public class GqlQuery {
 				throw new GqlQueryException("Invalid GQL query string. Function datetime: wrong number of arguments");
 			}
 		}
-		
+
 		private Date createDate(int year, int month, int day, int hour, int minute, int second) {
 			Calendar c = Calendar.getInstance();
 			c.clear();
@@ -1147,16 +1153,16 @@ public class GqlQuery {
 			return "FunctionEvaluator [type=" + type + ", ops=" + ops + "]";
 		}
 	}
-	
+
 	public static class ParamEvaluator implements Evaluator {
 
 		private final String paramName;
-		
+
 		public ParamEvaluator(String paramName) {
 			super();
 			this.paramName = paramName;
 		}
-		
+
 		@Override
 		public Object evaluate(Map<String, Object> context) {
 			return context.get(paramName);
@@ -1192,16 +1198,16 @@ public class GqlQuery {
 			return "ParamEvaluator [paramName=" + paramName + "]";
 		}
 	}
-	
+
 	public static class ListEvaluator implements Evaluator {
-		
+
 		private final List<Evaluator> evaluators;
-		
+
 		public ListEvaluator(Evaluator ...evaluators) {
 			super();
 			this.evaluators = Lists.newArrayList(evaluators);
 		}
-		
+
 		public ListEvaluator(List<Evaluator> evaluators) {
 			super();
 			this.evaluators = evaluators;

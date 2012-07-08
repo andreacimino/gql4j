@@ -210,9 +210,20 @@ public class GqlQueryTest {
 	public void testParseSelect_3() {
 		ParseResult actual = GqlQuery.parse("SELECT a,b");
 		ParseResult expected = new ParseResult().setSelect(new Select(false));
+		expected.getSelect().addProjection("a");
+		expected.getSelect().addProjection("b");
 		assertEquals(expected, actual);
 	}
 	
+	@Test
+	public void testParseSelect_4() {
+		ParseResult actual = GqlQuery.parse("SELECT a, b, c");
+		ParseResult expected = new ParseResult().setSelect(new Select(false));
+		expected.getSelect().addProjection("a");
+		expected.getSelect().addProjection("b");
+		expected.getSelect().addProjection("c");
+		assertEquals(expected, actual);
+	}
 	@Test
 	public void testParseFrom_1() {
 		ParseResult actual = GqlQuery.parse("SELECT * from a");

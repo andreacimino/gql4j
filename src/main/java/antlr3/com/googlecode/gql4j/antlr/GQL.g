@@ -46,7 +46,7 @@ select_clause returns [Select r]:
   SELECT 
   ('*' {$r = new Select(false);} 
   | '__key__' {$r = new Select(true);} 
-  | (i1=IDENTITY {$r = new Select(false);  $r.addProjection($i1.text );}) (',' i2=IDENTITY)*
+  | (i1=IDENTITY {$r = new Select(false);  $r.addProjection($i1.text );}) (',' i2=IDENTITY { $r.addProjection($i2.text );})*
 
 ) 
 ;
