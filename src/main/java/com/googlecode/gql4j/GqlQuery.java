@@ -38,7 +38,7 @@ public class GqlQuery {
 	private Query query;
 
 	private FetchOptions fetchOptions; 
-
+	private ParseResult parseResult;
 	/**
 	 * @param queryStr
 	 * @param context
@@ -69,54 +69,62 @@ public class GqlQuery {
 		build(queryStr, context);
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	public ParseResult getParseResult() {
+		return parseResult;
+	}
+	
 	private void build(String queryStr, Map<String, Object> context) {
-		ParseResult r = parse(queryStr);
+		parseResult = parse(queryStr);
 
 		// from clause
-		if (r.from == null) {
+		if (parseResult.from == null) {
 			this.query = new Query();
 		} else {
-			this.query = new Query(r.from.kind);
+			this.query = new Query(parseResult.from.kind);
 		}
 
 		// select clause
-		if (r.select.isKeyOnly()) {
+		if (parseResult.select.isKeyOnly()) {
 			this.query.setKeysOnly();
 		}
-		for (String projection : r.select.projections) {
+		for (String projection : parseResult.select.projections) {
 			query.addProjection(new PropertyProjection(projection, null));
 		}
 
 		// where clause
-		if (r.where != null) {
-			for (Condition c : r.where.conditions) {
+		if (parseResult.where != null) {
+			for (Condition c : parseResult.where.conditions) {
 				this.query.addFilter(c.propertyName, c.operator, c.e.evaluate(context));
 			}
 
 			// set ancester
-			if (r.where.ancestor != null) {
-				this.query.setAncestor(r.where.ancestor.ancestorKey(context));
+			if (parseResult.where.ancestor != null) {
+				this.query.setAncestor(parseResult.where.ancestor.ancestorKey(context));
 			}
 		}
 
 		// order by
-		if (r.orderBy != null) {
-			for (OrderByItem o : r.orderBy.items) {
+		if (parseResult.orderBy != null) {
+			for (OrderByItem o : parseResult.orderBy.items) {
 				this.query.addSort(o.propertyName, o.direction);
 			}
 		}
 
 		// limit
-		if (r.limit != null) {
-			this.fetchOptions = FetchOptions.Builder.withLimit(r.limit.limit);
+		if (parseResult.limit != null) {
+			this.fetchOptions = FetchOptions.Builder.withLimit(parseResult.limit.limit);
 		}
 
-		if (r.offset != null) {
+		if (parseResult.offset != null) {
 			if (this.fetchOptions == null) {
 				this.fetchOptions = FetchOptions.Builder.withDefaults();
 			}
 
-			this.fetchOptions.offset(r.offset.offset);
+			this.fetchOptions.offset(parseResult.offset.offset);
 		}
 	}
 

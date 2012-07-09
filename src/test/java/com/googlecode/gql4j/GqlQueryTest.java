@@ -224,6 +224,18 @@ public class GqlQueryTest {
 		expected.getSelect().addProjection("c");
 		assertEquals(expected, actual);
 	}
+	
+	@Test
+	public void testParseSelect_5() {
+		ParseResult actual = GqlQuery.parse("SELECT  facebookIDVisibility, registrationEmail from DatastoreUser-v1");
+		ParseResult expected = new ParseResult().setSelect(new Select(false));
+		expected.setFrom(new From("DatastoreUser-v1"));
+		expected.getSelect().addProjection("facebookIDVisibility");
+		expected.getSelect().addProjection("registrationEmail");
+		assertEquals(expected, actual);
+	}
+	
+	
 	@Test
 	public void testParseFrom_1() {
 		ParseResult actual = GqlQuery.parse("SELECT * from a");
