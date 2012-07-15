@@ -77,8 +77,8 @@ public class GqlQuery {
 		return parseResult;
 	}
 	
-	private void build(String queryStr, Map<String, Object> context) {
-		parseResult = parse(queryStr);
+	
+	public void build(ParseResult parseResult, Map<String, Object> context) {
 
 		// from clause
 		if (parseResult.from == null) {
@@ -125,7 +125,13 @@ public class GqlQuery {
 			}
 
 			this.fetchOptions.offset(parseResult.offset.offset);
-		}
+		}	
+		
+	}
+	
+	private void build(String queryStr, Map<String, Object> context) {
+		parseResult = parse(queryStr);
+		build(parseResult, context);
 	}
 
 	static ParseResult parse(String queryStr) {		
